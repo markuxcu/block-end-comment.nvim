@@ -170,8 +170,8 @@ require("block_end_comment").setup({
 | Rust              | `}`           | `// end …`    |
 | Zig               | `}`           | `// end …`    |
 | Lua               | `end` / `}`   | `-- end …`    |
-<!-- | Python            | (indentation) | `# end …`     | -->
-<!-- | Java / Go / JS/TS | `}`           | `// end …`    | -->
+| Python            | (indentation) | `# end …`     |
+| Java / Go / JS/TS | `}`           | `// end …`    |
 
 ---
 
