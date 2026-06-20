@@ -1,5 +1,5 @@
--- lua/block-end-comment/parser.lua
--- Treesitter-based block detection for block-end-comment plugin.
+-- lua/block_end_comment/parser.lua
+-- Treesitter-based block detection for block_end_comment plugin.
 -- Supports: rust, zig, cpp, c, lua, python (and any TS-supported language).
 
 local M = {}

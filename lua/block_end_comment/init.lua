@@ -1,5 +1,5 @@
--- lua/block-end-comment/init.lua
--- Main entry point for the block-end-comment Neovim plugin.
+-- lua/block_end_comment/init.lua
+-- Main entry point for the block_end_comment Neovim plugin.
 --
 -- Commands
 --   :BlockComment        – add a closing comment to the } / end on the cursor line
@@ -10,7 +10,7 @@
 --   <leader>{  – remove comment
 
 local M = {}
-local parser = require("block-end-comment.parser")
+local parser = require("block_end_comment.parser")
 
 -- ──────────────────────────────────────────────────────────────────────────────
 -- Defaults
