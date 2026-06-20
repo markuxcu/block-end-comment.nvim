@@ -631,11 +631,359 @@ local lang_configs = {
 			end,
 		},
 	},
+
+	-- ── JavaScript ─────────────────────────────────────────────────────────────
+	javascript = {
+		{ types = { "if_statement" }, fn = label_if },
+		{ types = { "while_statement" }, fn = label_while_loop },
+		{
+			types = { "do_statement" },
+			fn = function()
+				return "do"
+			end,
+		},
+		{
+			types = { "for_statement" },
+			fn = function(node, src)
+				local init = field_text(node, "initializer", src)
+				local cond = field_text(node, "condition", src)
+				if init ~= "" then
+					return "for " .. trunc(init)
+				elseif cond ~= "" then
+					return "for " .. trunc(cond)
+				end
+				local text = vim.treesitter.get_node_text(node, src)
+				local first = text:match("^([^\n]+)")
+				return "for " .. trunc(first or "")
+			end,
+		},
+		{
+			types = { "for_in_statement" },
+			fn = function(node, src)
+				local left = field_text(node, "left", src)
+				local right = field_text(node, "right", src)
+				if left ~= "" then
+					if right ~= "" then
+						return "for " .. trunc(left) .. " in " .. trunc(right)
+					end
+					return "for " .. trunc(left)
+				end
+				return "for...in"
+			end,
+		},
+		{
+			types = { "for_of_statement" },
+			fn = function(node, src)
+				local left = field_text(node, "left", src)
+				local right = field_text(node, "right", src)
+				if left ~= "" then
+					if right ~= "" then
+						return "for " .. trunc(left) .. " of " .. trunc(right)
+					end
+					return "for " .. trunc(left)
+				end
+				return "for...of"
+			end,
+		},
+		{
+			types = { "switch_statement" },
+			fn = function(node, src)
+				local val = field_text(node, "value", src)
+				if val ~= "" then
+					return "switch " .. trunc(val)
+				end
+				return "switch"
+			end,
+		},
+		{
+			types = { "try_statement" },
+			fn = function()
+				return "try"
+			end,
+		},
+		{
+			types = { "catch_clause" },
+			fn = function(node, src)
+				local param = field_text(node, "parameter", src)
+				if param ~= "" then
+					return "catch " .. trunc(param)
+				end
+				return "catch"
+			end,
+		},
+		{
+			types = { "finally_clause" },
+			fn = function()
+				return "finally"
+			end,
+		},
+		{
+			types = { "function_declaration" },
+			fn = label_function_def,
+		},
+		{
+			types = { "function_expression" },
+			fn = function(node, src)
+				local name = field_text(node, "name", src)
+				if name ~= "" then
+					return "fn " .. name
+				end
+				return "fn"
+			end,
+		},
+		{
+			types = { "arrow_function" },
+			fn = function()
+				return "arrow"
+			end,
+		},
+		{ types = { "class_declaration" }, fn = label_class },
+		{
+			types = { "class_expression" },
+			fn = function(node, src)
+				local name = field_text(node, "name", src)
+				if name ~= "" then
+					return "class " .. name
+				end
+				return "class"
+			end,
+		},
+		{
+			types = { "method_definition" },
+			fn = function(node, src)
+				local name = field_text(node, "name", src)
+				if name ~= "" then
+					return "method " .. name
+				end
+				return "method"
+			end,
+		},
+		{
+			types = { "export_statement" },
+			fn = function(node, src)
+				local src_node = node:field("source")[1]
+				if src_node then
+					return "export from " .. trunc(vim.treesitter.get_node_text(src_node, src))
+				end
+				return "export"
+			end,
+		},
+	},
+
+	-- ── Java ───────────────────────────────────────────────────────────────────
+	java = {
+		{ types = { "if_statement" }, fn = label_if },
+		{ types = { "while_statement" }, fn = label_while_loop },
+		{ types = { "for_statement" }, fn = label_for_loop },
+		{
+			types = { "enhanced_for_statement" },
+			fn = function(node, src)
+				local variable = field_text(node, "variable", src)
+				local value = field_text(node, "value", src)
+				if variable ~= "" and value ~= "" then
+					return "for " .. trunc(variable) .. " : " .. trunc(value)
+				end
+				return "for"
+			end,
+		},
+		{
+			types = { "do_statement" },
+			fn = function()
+				return "do"
+			end,
+		},
+		{
+			types = { "switch_expression" },
+			fn = function(node, src)
+				local cond = field_text(node, "condition", src)
+				if cond ~= "" then
+					return "switch " .. trunc(cond)
+				end
+				return "switch"
+			end,
+		},
+		{
+			types = { "try_statement" },
+			fn = function()
+				return "try"
+			end,
+		},
+		{
+			types = { "catch_clause" },
+			fn = function(node, src)
+				local param = field_text(node, "parameter", src)
+				if param ~= "" then
+					return "catch " .. trunc(param)
+				end
+				return "catch"
+			end,
+		},
+		{
+			types = { "finally_clause" },
+			fn = function()
+				return "finally"
+			end,
+		},
+		{ types = { "method_declaration" }, fn = label_function_def },
+		{
+			types = { "constructor_declaration" },
+			fn = function(node, src)
+				local name = field_text(node, "name", src)
+				if name ~= "" then
+					return "constructor " .. name
+				end
+				return "constructor"
+			end,
+		},
+		{ types = { "class_declaration" }, fn = label_class },
+		{
+			types = { "interface_declaration" },
+			fn = function(node, src)
+				local name = field_text(node, "name", src)
+				if name ~= "" then
+					return "interface " .. name
+				end
+				return "interface"
+			end,
+		},
+		{
+			types = { "enum_declaration" },
+			fn = function(node, src)
+				local name = field_text(node, "name", src)
+				if name ~= "" then
+					return "enum " .. name
+				end
+				return "enum"
+			end,
+		},
+		{
+			types = { "record_declaration" },
+			fn = function(node, src)
+				local name = field_text(node, "name", src)
+				if name ~= "" then
+					return "record " .. name
+				end
+				return "record"
+			end,
+		},
+		{
+			types = { "synchronized_statement" },
+			fn = function(node, src)
+				local cond = field_text(node, "condition", src)
+				if cond ~= "" then
+					return "synchronized " .. trunc(cond)
+				end
+				return "synchronized"
+			end,
+		},
+	},
+
+	-- ── Go ─────────────────────────────────────────────────────────────────────
+	go = {
+		{ types = { "if_statement" }, fn = label_if },
+		{
+			types = { "for_statement" },
+			fn = function(node, src)
+				local range = node:field("range")[1]
+				if range then
+					local left = field_text(range, "left", src)
+					local value = field_text(range, "value", src)
+					local right = field_text(range, "right", src)
+					if left ~= "" and right ~= "" then
+						if value ~= "" then
+							return "for " .. trunc(left) .. ", " .. trunc(value) .. " := range " .. trunc(right)
+						end
+						return "for " .. trunc(left) .. " := range " .. trunc(right)
+					end
+					if right ~= "" then
+						return "for range " .. trunc(right)
+					end
+					return "for range"
+				end
+				local init = field_text(node, "initializer", src)
+				local cond = field_text(node, "condition", src)
+				if init ~= "" then
+					return "for " .. trunc(init)
+				elseif cond ~= "" then
+					return "for " .. trunc(cond)
+				end
+				return "for"
+			end,
+		},
+		{
+			types = { "switch_statement" },
+			fn = function(node, src)
+				local exp = field_text(node, "expression", src)
+				if exp ~= "" then
+					return "switch " .. trunc(exp)
+				end
+				return "switch"
+			end,
+		},
+		{
+			types = { "type_switch_statement" },
+			fn = function(node, src)
+				local val = field_text(node, "value", src)
+				if val ~= "" then
+					return "switch " .. trunc(val) .. ".(type)"
+				end
+				return "switch type"
+			end,
+		},
+		{
+			types = { "select_statement" },
+			fn = function()
+				return "select"
+			end,
+		},
+		{ types = { "function_declaration" }, fn = label_function_def },
+		{
+			types = { "method_declaration" },
+			fn = function(node, src)
+				local name = field_text(node, "name", src)
+				if name ~= "" then
+					return "fn " .. name
+				end
+				return "fn"
+			end,
+		},
+		{
+			types = { "type_declaration" },
+			fn = function(node, src)
+				for child in node:iter_children() do
+					if child:type() == "type_spec" then
+						local name = field_text(child, "name", src)
+						if name ~= "" then
+							return "type " .. name
+						end
+					end
+				end
+				return "type"
+			end,
+		},
+	},
 }
 
 -- Alias c → cpp config
 lang_configs.c = lang_configs.cpp
-lang_configs.go = lang_configs.cpp
+
+-- TypeScript: inherit JS config + TS-specific nodes
+lang_configs.typescript = vim.list_extend({}, lang_configs.javascript)
+table.insert(lang_configs.typescript, { types = { "interface_declaration" }, fn = function(node, src)
+	local name = field_text(node, "name", src)
+	if name ~= "" then return "interface " .. name end
+	return "interface"
+end })
+table.insert(lang_configs.typescript, { types = { "type_alias_declaration" }, fn = function(node, src)
+	local name = field_text(node, "name", src)
+	if name ~= "" then return "type " .. name end
+	return "type"
+end })
+table.insert(lang_configs.typescript, { types = { "enum_declaration" }, fn = function(node, src)
+	local name = field_text(node, "name", src)
+	if name ~= "" then return "enum " .. name end
+	return "enum"
+end })
 
 -- ──────────────────────────────────────────────────────────────────────────────
 -- Public API
@@ -655,19 +1003,31 @@ function M.get_label(lnum, bufnr)
 	bufnr = bufnr or 0
 	local ft = vim.bo[bufnr].filetype
 
-	-- Normalise filetype aliases
-	local lang_ft = ft
-	if ft == "c" then
-		lang_ft = "cpp"
+	-- Normalise filetype aliases for config lookup and parser language
+	local ft_aliases = {
+		c = { config = "cpp", parser = "cpp" },
+		["javascript.jsx"] = { config = "javascript", parser = "javascript" },
+		javascriptreact = { config = "javascript", parser = "javascript" },
+		["typescript.tsx"] = { config = "typescript", parser = "tsx" },
+		typescriptreact = { config = "typescript", parser = "tsx" },
+	}
+	local normal = ft_aliases[ft]
+	local config_ft, parser_lang
+	if normal then
+		config_ft = normal.config
+		parser_lang = normal.parser
+	else
+		config_ft = ft
+		parser_lang = ft
 	end
 
-	local cfg = lang_configs[lang_ft]
+	local cfg = lang_configs[config_ft]
 	if not cfg then
 		return nil
 	end
 
 	-- Ensure TS parser is available
-	local ok, parser_obj = pcall(vim.treesitter.get_parser, bufnr, lang_ft)
+	local ok, parser_obj = pcall(vim.treesitter.get_parser, bufnr, parser_lang)
 	if not ok or not parser_obj then
 		vim.notify("[block-end-comment] No treesitter parser for " .. ft, vim.log.levels.WARN)
 		return nil
