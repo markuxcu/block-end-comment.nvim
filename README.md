@@ -1,20 +1,21 @@
-# block_comment.nvim
+# block-end-comment.nvim 🧩
 
-Fügt am Ende von Codeblöcken automatisch Kommentare ein, die erklären, was geschlossen wird.  
-Basiert auf **Treesitter** – präzise und sprachübergreifend.
+Automatically inserts comments at the end of code blocks to show what is being closed.  
+Built on **Treesitter** – precise and cross-language.
 
-## Unterstützte Sprachen
+## 📑 Table of Contents
 
-| Sprache    | Schließendes Token | Kommentar-Stil |
-|------------|--------------------|----------------|
-| C / C++    | `}`                | `// end …`     |
-| Rust       | `}`                | `// end …`     |
-| Zig        | `}`                | `// end …`     |
-| Lua        | `end` / `}`        | `-- end …`     |
-| Python     | (Einrückung)       | `# end …`      |
-| Java / Go / JS / TS | `}`     | `// end …`     |
+- [✨ Examples](#-examples)
+- [📋 Requirements](#-requirements)
+- [📦 Installation](#-installation)
+- [⚙️ Configuration](#️-configuration)
+- [🎮 Commands](#-commands)
+- [⌨️ Default Keymaps](#️-default-keymaps)
+- [🌍 Supported Languages](#-supported-languages)
 
-## Beispiele
+---
+
+## ✨ Examples
 
 ```cpp
 for (int i = 0; i < vec.size(); i++) {
@@ -60,20 +61,31 @@ class MyClass:
 
 ---
 
-## Installation
+## 📋 Requirements
+
+- Neovim ≥ 0.9
+- `nvim-treesitter` with desired parsers installed:
+
+```vim
+:TSInstall cpp rust zig lua python
+```
+
+---
+
+## 📦 Installation
 
 ### lazy.nvim
 
 ```lua
 {
-  "yourname/block_comment.nvim",  -- oder dir = "~/.config/nvim/plugins/block_comment"
+  "markuxcu/block_comment.nvim",
   config = function()
     require("block_comment").setup()
   end,
 }
 ```
 
-### Manuell (kein Plugin-Manager)
+### Manually (no plugin manager)
 
 ```
 ~/.config/nvim/
@@ -83,19 +95,20 @@ class MyClass:
         └── parser.lua
 ```
 
-In deiner `init.lua`:
+In your `init.lua`:
+
 ```lua
 require("block_comment").setup()
 ```
 
 ---
 
-## Konfiguration
+## ⚙️ Configuration
 
 ```lua
 require("block_comment").setup({
 
-  -- Kommentar-Template pro Filetype (%s = erkanntes Label)
+  -- Comment template per filetype (%s = detected label)
   comment_style = {
     cpp        = "// end %s",
     c          = "// end %s",
@@ -109,10 +122,10 @@ require("block_comment").setup({
     typescript = "// end %s",
   },
 
-  -- Automatisch beim Verlassen von Insert-Mode einfügen (default: false)
+  -- Auto-insert on leaving Insert mode (default: false)
   auto_insert = true,
 
-  -- Standard-Keymaps registrieren (default: true)
+  -- Register default keymaps (default: true)
   -- <leader>}  = add comment
   -- <leader>{  = remove comment
   keymaps = true,
@@ -121,29 +134,33 @@ require("block_comment").setup({
 
 ---
 
-## Befehle
+## 🎮 Commands
 
-| Befehl                  | Beschreibung                                             |
-|-------------------------|----------------------------------------------------------|
-| `:BlockComment`         | Kommentar auf der aktuellen schließenden Zeile einfügen  |
-| `:BlockCommentRemove`   | Kommentar von der aktuellen Zeile entfernen              |
-| `:BlockCommentAll`      | Alle schließenden Zeilen im Buffer kommentieren          |
-| `:BlockCommentRemoveAll`| Alle eingefügten Kommentare im Buffer entfernen          |
-
-## Standard-Keymaps
-
-| Keymap       | Aktion           |
-|--------------|------------------|
-| `<leader>}`  | Kommentar hinzufügen |
-| `<leader>{`  | Kommentar entfernen  |
+| Command                  | Description                                |
+| ------------------------ | ------------------------------------------ |
+| `:BlockComment`          | Insert comment on the current closing line |
+| `:BlockCommentRemove`    | Remove comment from the current line       |
+| `:BlockCommentAll`       | Comment all closing lines in the buffer    |
+| `:BlockCommentRemoveAll` | Remove all inserted comments in the buffer |
 
 ---
 
-## Voraussetzungen
+## ⌨️ Default Keymaps
 
-- Neovim ≥ 0.9
-- `nvim-treesitter` mit den gewünschten Parsern installiert:
+| Keymap      | Action         |
+| ----------- | -------------- |
+| `<leader>}` | Add comment    |
+| `<leader>{` | Remove comment |
 
-```vim
-:TSInstall cpp rust zig lua python
-```
+---
+
+## 🌍 Supported Languages
+
+| Language          | Closing Token | Comment Style |
+| ----------------- | ------------- | ------------- |
+| C / C++           | `}`           | `// end …`    |
+| Rust              | `}`           | `// end …`    |
+| Zig               | `}`           | `// end …`    |
+| Lua               | `end` / `}`   | `-- end …`    |
+| Python            | (indentation) | `# end …`     |
+| Java / Go / JS/TS | `}`           | `// end …`    |
