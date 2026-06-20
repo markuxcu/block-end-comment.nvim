@@ -635,6 +635,7 @@ local lang_configs = {
 
 -- Alias c → cpp config
 lang_configs.c = lang_configs.cpp
+lang_configs.go = lang_configs.cpp
 
 -- ──────────────────────────────────────────────────────────────────────────────
 -- Public API
