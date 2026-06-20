@@ -115,6 +115,12 @@ local close_tokens = {
 	nim = { "DEDENT" }, -- indentation-based detection
 }
 
+-- Returns true for indentation-based languages (Python, Nim).
+local function is_indent_based(ft)
+	local tokens = close_tokens[ft]
+	return tokens and tokens[1] == "DEDENT"
+end
+
 -- Indentation-based closing-line detection for Python / Nim.
 -- A line is a "closing line" when the next non-blank line has
 -- less or equal indentation (dedent), and the line doesn't start
@@ -134,7 +140,7 @@ local function is_indent_closing_line(line, lnum)
 	end
 
 	local next_indent = vim.fn.indent(next_lnum)
-	return next_indent <= current_indent
+	return next_indent < current_indent
 end
 
 -- Returns true if `line` is a closing line (one we should annotate).
@@ -185,9 +191,17 @@ function M.add_comment()
 	end
 
 	-- Guard: already has our comment → skip
-	if has_our_comment(line, ft) then
-		vim.notify("[block-end-comment] Comment already present", vim.log.levels.INFO)
-		return
+	if is_indent_based(ft) then
+		local next_line = vim.fn.getline(lnum + 1)
+		if next_line and has_our_comment(next_line, ft) then
+			vim.notify("[block-end-comment] Comment already present", vim.log.levels.INFO)
+			return
+		end
+	else
+		if has_our_comment(line, ft) then
+			vim.notify("[block-end-comment] Comment already present", vim.log.levels.INFO)
+			return
+		end
 	end
 
 	local label = parser.get_label(lnum, bufnr)
@@ -198,9 +212,15 @@ function M.add_comment()
 
 	-- Build and apply the new line
 	local comment = string.format(tpl, label)
-	local bare = strip_our_comment(line, ft) -- remove any stale comment first
-	local new_line = bare .. " " .. comment
-	vim.fn.setline(lnum, new_line)
+	if is_indent_based(ft) then
+		local indent_str = string.rep(" ", vim.fn.indent(lnum))
+		local comment_line = indent_str .. comment
+		vim.api.nvim_buf_set_lines(bufnr, lnum, lnum, false, { comment_line })
+	else
+		local bare = strip_our_comment(line, ft) -- remove any stale comment first
+		local new_line = bare .. " " .. comment
+		vim.fn.setline(lnum, new_line)
+	end
 end
 
 -- ──────────────────────────────────────────────────────────────────────────────
@@ -219,13 +239,26 @@ function M.remove_comment()
 	local lnum = vim.fn.line(".")
 	local line = vim.fn.getline(lnum)
 
+	-- For indent-based languages, check next line first (comment on its own line)
+	if is_indent_based(ft) then
+		local next_line = vim.fn.getline(lnum + 1)
+		if next_line and has_our_comment(next_line, ft) then
+			vim.api.nvim_buf_set_lines(bufnr, lnum, lnum + 1, false, {})
+			return
+		end
+	end
+
 	if not has_our_comment(line, ft) then
 		vim.notify("[block-end-comment] No block-end-comment found on this line", vim.log.levels.INFO)
 		return
 	end
 
 	local stripped = strip_our_comment(line, ft)
-	vim.fn.setline(lnum, stripped)
+	if is_indent_based(ft) and stripped:match("^%s*$") then
+		vim.api.nvim_buf_set_lines(bufnr, lnum - 1, lnum, false, {})
+	else
+		vim.fn.setline(lnum, stripped)
+	end
 end
 
 -- ──────────────────────────────────────────────────────────────────────────────
@@ -241,12 +274,23 @@ function M.add_all()
 
 	-- Save cursor, iterate, restore
 	local saved = vim.fn.getcurpos()
-	for l = 1, nlines do
-		local line = vim.fn.getline(l)
-		if is_closing_line(line, ft) and not has_our_comment(line, ft) then
-			vim.fn.cursor(l, 1)
-			M.add_comment()
-			count = count + 1
+	if is_indent_based(ft) then
+		for l = nlines, 1, -1 do
+			local line = vim.fn.getline(l)
+			if is_closing_line(line, ft, l) and not has_our_comment(line, ft) then
+				vim.fn.cursor(l, 1)
+				M.add_comment()
+				count = count + 1
+			end
+		end
+	else
+		for l = 1, nlines do
+			local line = vim.fn.getline(l)
+			if is_closing_line(line, ft, l) and not has_our_comment(line, ft) then
+				vim.fn.cursor(l, 1)
+				M.add_comment()
+				count = count + 1
+			end
 		end
 	end
 	vim.fn.setpos(".", saved)
@@ -261,12 +305,24 @@ function M.remove_all()
 	local count = 0
 
 	local saved = vim.fn.getcurpos()
-	for l = 1, nlines do
-		local line = vim.fn.getline(l)
-		if has_our_comment(line, ft) then
-			vim.fn.cursor(l, 1)
-			M.remove_comment()
-			count = count + 1
+	if is_indent_based(ft) then
+		for l = nlines, 1, -1 do
+			local line = vim.fn.getline(l)
+			local next_line = vim.fn.getline(l + 1)
+			if has_our_comment(line, ft) or (next_line and has_our_comment(next_line, ft)) then
+				vim.fn.cursor(l, 1)
+				M.remove_comment()
+				count = count + 1
+			end
+		end
+	else
+		for l = 1, nlines do
+			local line = vim.fn.getline(l)
+			if has_our_comment(line, ft) then
+				vim.fn.cursor(l, 1)
+				M.remove_comment()
+				count = count + 1
+			end
 		end
 	end
 	vim.fn.setpos(".", saved)
