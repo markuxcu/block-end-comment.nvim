@@ -82,9 +82,9 @@ class MyClass:
 
 ```lua
 {
-  "markuxcu/block_comment.nvim",
+  "markuxcu/block-end-comment.nvim",
   config = function()
-    require("block_comment").setup()
+    require("block-end-comment").setup()
   end,
 }
 ```
@@ -94,7 +94,7 @@ class MyClass:
 ```
 ~/.config/nvim/
 └── lua/
-    └── block_comment/
+    └── block-end-comment/
         ├── init.lua
         └── parser.lua
 ```
@@ -102,7 +102,7 @@ class MyClass:
 In your `init.lua`:
 
 ```lua
-require("block_comment").setup()
+require("block-end-comment").setup()
 ```
 
 ---
@@ -110,7 +110,7 @@ require("block_comment").setup()
 ## ⚙️ Configuration
 
 ```lua
-require("block_comment").setup({
+require("block-end-comment").setup({
 
   -- Comment template per filetype (%s = detected label)
   comment_style = {
@@ -133,6 +133,10 @@ require("block_comment").setup({
   -- <leader>}  = add comment
   -- <leader>{  = remove comment
   keymaps = true,
+
+	-- Minimum number of lines a block must span before a comment is added.
+	-- Avoids noise on tiny single-line blocks.
+	min_block_lines = 3,
 })
 ```
 
