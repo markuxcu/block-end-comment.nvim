@@ -115,8 +115,30 @@ local close_tokens = {
 	nim = { "DEDENT" }, -- indentation-based detection
 }
 
+-- Indentation-based closing-line detection for Python / Nim.
+-- A line is a "closing line" when the next non-blank line has
+-- less or equal indentation (dedent), and the line doesn't start
+-- a new block (doesn't end with ':').
+local function is_indent_closing_line(line, lnum)
+	if line:match(":%s*$") or line:match(":%s*#") then
+		return false
+	end
+	if line:match("^%s*$") or line:match("^%s*#") then
+		return false
+	end
+
+	local current_indent = vim.fn.indent(lnum)
+	local next_lnum = vim.fn.nextnonblank(lnum + 1)
+	if next_lnum == 0 then
+		return true
+	end
+
+	local next_indent = vim.fn.indent(next_lnum)
+	return next_indent <= current_indent
+end
+
 -- Returns true if `line` is a closing line (one we should annotate).
--- `lnum` is required for indentation-based languages (Python).
+-- `lnum` is required for indentation-based languages (Python / Nim).
 local function is_closing_line(line, ft, lnum)
 	local tokens = close_tokens[ft]
 	if not tokens then
@@ -138,28 +160,6 @@ local function is_closing_line(line, ft, lnum)
 		end
 	end
 	return false
-end
-
--- Indentation-based closing-line detection for Python / Nim.
--- A line is a "closing line" when the next non-blank line has
--- less or equal indentation (dedent), and the line doesn't start
--- a new block (doesn't end with ':').
-local function is_indent_closing_line(line, lnum)
-	if line:match(":%s*$") or line:match(":%s*#") then
-		return false
-	end
-	if line:match("^%s*$") or line:match("^%s*#") then
-		return false
-	end
-
-	local current_indent = vim.fn.indent(lnum)
-	local next_lnum = vim.fn.nextnonblank(lnum + 1)
-	if next_lnum == 0 then
-		return true
-	end
-
-	local next_indent = vim.fn.indent(next_lnum)
-	return next_indent <= current_indent
 end
 
 -- ──────────────────────────────────────────────────────────────────────────────

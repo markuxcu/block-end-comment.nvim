@@ -44,14 +44,14 @@ end
 -- ──────────────────────────────────────────────────────────────────────────────
 
 local function label_for_loop(node, src)
-	-- Works for C/C++/Rust/Zig style for loops
-	local init = field_text(node, "initializer", src)
-	-- fallback: grab the condition
+	-- Works for C/C++/Java style for loops
 	local cond = field_text(node, "condition", src)
+	if cond ~= "" then
+		return "for " .. trunc(cond)
+	end
+	local init = field_text(node, "initializer", src)
 	if init ~= "" then
 		return "for " .. trunc(init)
-	elseif cond ~= "" then
-		return "for " .. trunc(cond)
 	end
 	-- Last resort: first line of the node text
 	local text = vim.treesitter.get_node_text(node, src)
@@ -885,39 +885,41 @@ local lang_configs = {
 		{
 			types = { "for_statement" },
 			fn = function(node, src)
-				local range = node:field("range")[1]
-				if range then
-					local left = field_text(range, "left", src)
-					local value = field_text(range, "value", src)
-					local right = field_text(range, "right", src)
-					if left ~= "" and right ~= "" then
-						if value ~= "" then
-							return "for " .. trunc(left) .. ", " .. trunc(value) .. " := range " .. trunc(right)
-						end
-						return "for " .. trunc(left) .. " := range " .. trunc(right)
-					end
-					if right ~= "" then
-						return "for range " .. trunc(right)
-					end
+				local text = vim.treesitter.get_node_text(node, src)
+				local header = text:match("^for%s+(.-)[\n{]")
+				if not header then
+					return "for"
+				end
+
+				-- range clause: "for k, v := range items {" or "for range items {"
+				local vars, target = header:match("^(.-):=%s*range%s+(.-)%s*$")
+				if vars then
+					return "for " .. trunc(vim.trim(vars)) .. " range " .. trunc(target)
+				end
+				target = header:match("^range%s+(.-)%s*$")
+				if target then
+					return "for range " .. trunc(target)
+				end
+				if header:match("^range%s*$") then
 					return "for range"
 				end
-				local cond = field_text(node, "condition", src)
+
+				-- ForClause: "for init; cond; post {"
+				local parts = vim.split(header, ";")
+				if #parts >= 3 then
+					local cond = vim.trim(parts[2])
+					if cond ~= "" then
+						return "for " .. trunc(cond)
+					end
+					return "for"
+				end
+
+				-- Just a condition: "for i < 10 {"
+				local cond = vim.trim(header)
 				if cond ~= "" then
 					return "for " .. trunc(cond)
 				end
-				-- Fallback: extract condition from node text (works when field names vary)
-				local text = vim.treesitter.get_node_text(node, src)
-				local rest = text:match("^for%s+(.-)$")
-				if rest then
-					local snippet = rest:match("^(.-)[\n{]")
-					if snippet then
-						return "for " .. trunc(snippet)
-					end
-					snippet = rest:match("^(.-)%s*$")
-					if snippet then
-						return "for " .. trunc(snippet)
-					end
-				end
+
 				return "for"
 			end,
 		},
