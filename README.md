@@ -15,6 +15,7 @@ Built on **Treesitter** – precise and cross-language.
 - [🎮 Commands](#-commands)
 - [⌨️ Default Keymaps](#️-default-keymaps)
 - [🌍 Supported Languages](#-supported-languages)
+- [📄 License](#-license)
 
 ---
 
