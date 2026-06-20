@@ -4,7 +4,7 @@ Automatically inserts comments at the end of code blocks to show what is being c
 Built on **Treesitter** – precise and cross-language.
 
 > [!CAUTION]
-> This plugin was **vibecoded** using **OpenCode Zen Big Pickle**. Use at your own risk.
+> This plugin was partially **vibecoded** using **OpenCode Zen Big Pickle**. Use at your own risk.
 
 ## 📑 Table of Contents
 
@@ -84,7 +84,7 @@ class MyClass:
 {
   "markuxcu/block-end-comment.nvim",
   config = function()
-    require("block-end-comment").setup()
+    require("block_end_comment").setup()
   end,
 }
 ```
@@ -102,7 +102,7 @@ class MyClass:
 In your `init.lua`:
 
 ```lua
-require("block-end-comment").setup()
+require("block_end_comment").setup()
 ```
 
 ---
@@ -110,7 +110,7 @@ require("block-end-comment").setup()
 ## ⚙️ Configuration
 
 ```lua
-require("block-end-comment").setup({
+require("block_end_comment").setup({
 
   -- Comment template per filetype (%s = detected label)
   comment_style = {
