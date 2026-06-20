@@ -645,12 +645,13 @@ local lang_configs = {
 		{
 			types = { "for_statement" },
 			fn = function(node, src)
-				local init = field_text(node, "initializer", src)
 				local cond = field_text(node, "condition", src)
+				if cond ~= "" then
+					return "for " .. trunc(cond)
+				end
+				local init = field_text(node, "initializer", src)
 				if init ~= "" then
 					return "for " .. trunc(init)
-				elseif cond ~= "" then
-					return "for " .. trunc(cond)
 				end
 				local text = vim.treesitter.get_node_text(node, src)
 				local first = text:match("^([^\n]+)")
@@ -900,12 +901,22 @@ local lang_configs = {
 					end
 					return "for range"
 				end
-				local init = field_text(node, "initializer", src)
 				local cond = field_text(node, "condition", src)
-				if init ~= "" then
-					return "for " .. trunc(init)
-				elseif cond ~= "" then
+				if cond ~= "" then
 					return "for " .. trunc(cond)
+				end
+				-- Fallback: extract condition from node text (works when field names vary)
+				local text = vim.treesitter.get_node_text(node, src)
+				local rest = text:match("^for%s+(.-)$")
+				if rest then
+					local snippet = rest:match("^(.-)[\n{]")
+					if snippet then
+						return "for " .. trunc(snippet)
+					end
+					snippet = rest:match("^(.-)%s*$")
+					if snippet then
+						return "for " .. trunc(snippet)
+					end
 				end
 				return "for"
 			end,

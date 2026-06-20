@@ -111,17 +111,25 @@ local close_tokens = {
 	typescriptreact = { "}", "};" },
 	go = { "}" },
 	lua = { "end", "}" },
-	python = nil, -- Python uses dedent; handled differently
-	nim = nil, -- Nim uses indentation
+	python = { "DEDENT" }, -- indentation-based detection
+	nim = { "DEDENT" }, -- indentation-based detection
 }
 
--- Returns true if `line` is (only) a closing token (possibly with comment).
-local function is_closing_line(line, ft)
+-- Returns true if `line` is a closing line (one we should annotate).
+-- `lnum` is required for indentation-based languages (Python).
+local function is_closing_line(line, ft, lnum)
 	local tokens = close_tokens[ft]
 	if not tokens then
 		return false
 	end
-	-- Strip any existing trailing comment first
+
+	-- Python / Nim: indentation-based dedent detection
+	if tokens[1] == "DEDENT" then
+		lnum = lnum or vim.fn.line(".")
+		local bare = strip_our_comment(line, ft)
+		return is_indent_closing_line(bare, lnum)
+	end
+
 	local bare = strip_our_comment(line, ft)
 	bare = bare:match("^%s*(.-)%s*$") -- trim
 	for _, tok in ipairs(tokens) do
@@ -130,6 +138,28 @@ local function is_closing_line(line, ft)
 		end
 	end
 	return false
+end
+
+-- Indentation-based closing-line detection for Python / Nim.
+-- A line is a "closing line" when the next non-blank line has
+-- less or equal indentation (dedent), and the line doesn't start
+-- a new block (doesn't end with ':').
+local function is_indent_closing_line(line, lnum)
+	if line:match(":%s*$") or line:match(":%s*#") then
+		return false
+	end
+	if line:match("^%s*$") or line:match("^%s*#") then
+		return false
+	end
+
+	local current_indent = vim.fn.indent(lnum)
+	local next_lnum = vim.fn.nextnonblank(lnum + 1)
+	if next_lnum == 0 then
+		return true
+	end
+
+	local next_indent = vim.fn.indent(next_lnum)
+	return next_indent <= current_indent
 end
 
 -- ──────────────────────────────────────────────────────────────────────────────
@@ -149,7 +179,7 @@ function M.add_comment()
 	local line = vim.fn.getline(lnum)
 
 	-- Guard: must be a closing line
-	if not is_closing_line(line, ft) then
+	if not is_closing_line(line, ft, lnum) then
 		vim.notify("[block-end-comment] Cursor is not on a closing line", vim.log.levels.WARN)
 		return
 	end
@@ -284,8 +314,9 @@ local function setup_autocmd()
 		pattern = patterns,
 		callback = function()
 			local ft = vim.bo.filetype
-			local line = vim.fn.getline(".")
-			if is_closing_line(line, ft) and not has_our_comment(line, ft) then
+			local lnum = vim.fn.line(".")
+			local line = vim.fn.getline(lnum)
+			if is_closing_line(line, ft, lnum) and not has_our_comment(line, ft) then
 				M.add_comment()
 			end
 		end,
