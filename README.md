@@ -24,7 +24,7 @@ Built on **Treesitter** – precise and cross-language.
 ```cpp
 for (int i = 0; i < vec.size(); i++) {
     process(vec[i]);
-} // end for int i = 0
+} // end for i < vec.size()
 
 class MyEngine {
     // …
@@ -54,13 +54,12 @@ end -- end for k, v in pairs(tbl)
 ```python
 for item in my_list:
     process(item)
-# end for item in my_list
+    # end for item in my_list
 
 class MyClass:
     def method(self):
         pass
-    # end fn method
-# end class MyClass
+        # end function method
 ```
 
 ---
