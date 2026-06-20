@@ -3,7 +3,8 @@
 Automatically inserts comments at the end of code blocks to show what is being closed.  
 Built on **Treesitter** – precise and cross-language.
 
-> ⚠️ **Warning:** This plugin was vibecoded using **OpenCode Zen Big Pickle**. Use at your own risk.
+> [!CAUTION]
+> This plugin was **vibecoded** using **OpenCode Zen Big Pickle**. Use at your own risk.
 
 ## 📑 Table of Contents
 
