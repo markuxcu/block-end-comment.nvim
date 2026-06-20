@@ -133,9 +133,9 @@ require("block_end_comment").setup({
   -- <leader>{  = remove comment
   keymaps = true,
 
-	-- Minimum number of lines a block must span before a comment is added.
-	-- Avoids noise on tiny single-line blocks.
-	min_block_lines = 3,
+  -- Minimum number of lines a block must span before a comment is added.
+  -- Avoids noise on tiny single-line blocks.
+  min_block_lines = 3,
 })
 ```
 
