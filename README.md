@@ -1,3 +1,5 @@
+[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+
 # block-end-comment.nvim 🧩
 
 Automatically inserts comments at the end of code blocks to show what is being closed.  
